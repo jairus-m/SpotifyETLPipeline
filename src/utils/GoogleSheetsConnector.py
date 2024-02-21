@@ -31,6 +31,14 @@ class GoogleSheetData():
         self.spreadsheet = self.gc.open_by_url(self.spreadsheet_url)
         self.worksheet = self.spreadsheet.get_worksheet(0)
         self._logger = logging.getLogger(__name__)
+    
+    def get_sheets_data(self) -> pd.DataFrame:
+        """
+        Downloads existing data from Google Sheets
+        :return pd.DataFrame:
+        """
+        existing_data = self.worksheet.get_all_values()
+        return pd.DataFrame(existing_data[1:], columns=existing_data[0])
 
     def upload_new_data(self, df_new: pd.DataFrame, df_old: pd.DataFrame) -> None:
         """
@@ -54,13 +62,13 @@ class GoogleSheetData():
                 # timestamp dtype is not JSON serializeable so convert back to str
                 df['time'] = str(df['time'])
                 
-                worksheet.update([df.columns.values.tolist()] + df.values.tolist())
-                self._logger(f'New data added: {len(df_new)} items.')
+                self.worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+                self._logger.info(f'New data added: {len(df_new)} items.')
             else:
-                self._logger('No new data to upload.')
+                self._logger.info('No new data to upload.')
 
         except Exception as e:
-            self._error(f'Error in upload_new_data(): {e}')
+            self._logger.info(f'Error in upload_new_data(): {e}')
 
         return None
         
