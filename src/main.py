@@ -34,7 +34,7 @@ def initialize_slack(config):
     """
     channel = config['slack']['channel']
     token = config['slack']['token']
-    slack = SlackNotifications(token, channel)
+    slack = SlackNotifications.SlackNotifications(token, channel)
     return slack
 
 def initialize_connectors(config):
@@ -44,13 +44,13 @@ def initialize_connectors(config):
     :param config: yaml config that is read in
     """
     gsc = GoogleSheetsConnector.GoogleSheetData(
-        config['google_sheets']['scope'],
-        config['google_sheets']['spreadsheet_url'],
-        config['google_sheets']['json_credentials_path']
+        scope=config['google_sheets']['scope'],
+        spreadsheet_url=config['google_sheets']['spreadsheet_url'],
+        json_credentials_path=config['google_sheets']['json_credentials_path']
     )
     sc = SpotifyConnector.SpotifyData(
-        config['spotify']['client_id'],
-        config['spotify']['client_secret']
+        client_id=config['spotify']['client_id'],
+        client_secret=config['spotify']['client_secret']
     )
     
     return gsc, sc
@@ -63,7 +63,7 @@ def main():
         config = parse_config()
         initialize_logging(config)
         slack = initialize_slack(config)
-        gsc, sc = initialize_connectors(config)
+        gsc, sc= initialize_connectors(config)
 
         logger = logging.getLogger(__name__)
         logger.info('Starting ETL job.')
@@ -76,14 +76,17 @@ def main():
         df_new = sc.create_song_data(songs)
 
         # upload data
-        gsc.upload_new_data(df_new, df_old)
+        num_new_items = gsc.upload_new_data(df_new, df_old)
 
         logger.info('ETL job complete.')
 
         duration = time.time() - start_time
 
         slack.timing_message(job='Spotify_ETL', duration=duration)
-        slack.send_custom_message('Job succeeded!')
+        slack.send_custom_message(f'Job succeeded! {num_new_items} songs added.')
     except Exception as e:
         slack.send_custom_message(f'Date: {datetime.datetime.now()}\nSpotifyETL job failed. Please check logs.')
         slack.send_custom_message(f'Exception: {e}')
+
+if __name__ == '__main__':
+    main()

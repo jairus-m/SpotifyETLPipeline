@@ -4,12 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+gspread = "*"
 pandas = "*"
-spotipy = "*"
-apache-airflow = "*"
 pyarrow = "*"
+oauth2client = "*"
+spotipy = "*"
+slack-sdk = "*"
+pyyaml = "*"
 
 [dev-packages]
+ipynb = "*"
 ipykernel = "*"
 
 [requires]

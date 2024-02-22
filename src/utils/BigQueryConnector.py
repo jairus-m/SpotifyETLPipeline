@@ -2,9 +2,10 @@
 Connectors Module:
 
 Author: Jairus Martinez
-Date: 1/06/2023
+Date: 2/22/2024
 
-This module contains the connector classes needed for the ETL code.
+This module contains the connector classes needed for the ETL code - newest_data has been adapted
+for the Spotify ETL job. 
 """
 import pandas as pd
 import logging
@@ -81,11 +82,11 @@ class BigQueryConnector():
         :param date_col_name: name of the date col to asses freshness by 
         :returns: filtered dataframe
         """
-        # grab the latest date (latest date - 1 day)
-        latest_date = pd.to_datetime(df_to_compare[date_col_name]).sort_index().dt.date[0] - timedelta(days=7)
+        # grab the latest date (latest date )
+        latest_date = pd.to_datetime(df_to_compare[date_col_name]).sort_index().dt.date[0]
 
         # create mask and filter data (greater than latest data AND activity 'id' not found in latest query)
-        mask = (pd.to_datetime(df[date_col_name]).sort_index().dt.date > latest_date) & (~df['id'].isin(df_to_compare['id']))
+        mask = (pd.to_datetime(df[date_col_name]).sort_index().dt.date > latest_date) #& (~df['id'].isin(df_to_compare['id']))
         return df[mask]
     
     def append_to_table(self, table_id: str, df):

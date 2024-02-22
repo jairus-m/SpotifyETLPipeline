@@ -19,11 +19,10 @@ class GoogleSheetData():
         worksheet: worksheet object
 
     Methods:
+        get_sheets_data: downloads existing data from Google Sheets
         upload_new_data: uploads new data to Google Sheets
     """
-    def __init__(self, scope, json_credentials_path, spreadsheet_url):
-        """
-        """
+    def __init__(self, scope: list, json_credentials_path: str, spreadsheet_url: str):
         self.scope = scope
         self.credentials = ServiceAccountCredentials.from_json_keyfile_name(json_credentials_path, self.scope)
         self.gc = gspread.authorize(self.credentials)
@@ -40,13 +39,13 @@ class GoogleSheetData():
         existing_data = self.worksheet.get_all_values()
         return pd.DataFrame(existing_data[1:], columns=existing_data[0])
 
-    def upload_new_data(self, df_new: pd.DataFrame, df_old: pd.DataFrame) -> None:
+    def upload_new_data(self, df_new: pd.DataFrame, df_old: pd.DataFrame) -> int:
         """
         Uploads new data to specified Google Sheets
 
         :param df_new: new data extracted from Spotify API
         :param df_old: old data extracted from existing Google Sheets API
-        :return None:
+        :return num_new_items: returns the nuber of new items added
         """
         # make sure the time col are datetime64
         df_new['time'] = df_new['time'].astype('datetime64[ns]')
@@ -59,16 +58,21 @@ class GoogleSheetData():
                 df_new = df_new.loc[df_new['time'] > latest_time]
                 df = pd.concat([df_old, df_new]).sort_values(by='time', ascending=False)
 
-                # timestamp dtype is not JSON serializeable so convert back to str
-                df['time'] = str(df['time'])
-                
-                self.worksheet.update([df.columns.values.tolist()] + df.values.tolist())
-                self._logger.info(f'New data added: {len(df_new)} items.')
+                if len(df) > len(df_old):
+                    # timestamp dtype is not JSON serializeable so convert back to str
+                    df['time'] = df['time'].astype('str')
+
+                    self.worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+                    self._logger.info(f'New data added: {len(df_new)} items.')
+                    return len(df_new)
+                else:
+                    return 0
             else:
                 self._logger.info('No new data to upload.')
+                return 0
 
         except Exception as e:
             self._logger.info(f'Error in upload_new_data(): {e}')
 
-        return None
+        
         

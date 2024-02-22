@@ -1,4 +1,5 @@
 *.yml
 *.txt
 *.ipynb
-*.lock
+*.json
+src/big_query.py
