@@ -5,7 +5,6 @@ Python code reads from Spotify's API, extracts, transforms, and loads data into 
 Data is batch processed every hour, every day!!! 
 
 Implements:
-- ETL design
 - containerization
 - OOP / Modularity
 - logging
