@@ -11,6 +11,8 @@ oauth2client = "*"
 spotipy = "*"
 slack-sdk = "*"
 pyyaml = "*"
+google-cloud-bigquery = "*"
+db-dtypes = "*"
 
 [dev-packages]
 ipynb = "*"
